@@ -2,8 +2,8 @@ package psychologytheory.limitcalculator;
 
 public enum LimitTypes {
     INDETERMINANT(false, "The limit is indeterminant"),
-    POSITIVE_INFINITY(false, "The limit is positive infinity"),
-    NEGATIVE_INFINITY(false, "The limit is negative infinity"),
+    POSITIVE_INFINITY(true, "The limit is positive infinity"),
+    NEGATIVE_INFINITY(true, "The limit is negative infinity"),
     DOES_NOT_EXIST(false, "The limit does not exist"),
     EXISTS(true, "The limit exists");
 
