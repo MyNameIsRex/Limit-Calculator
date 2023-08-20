@@ -62,6 +62,7 @@ public class LimitCalculator {
 
         for (int i = 9; i < problem.length(); i++) {
             switch (problem.charAt(i)) {
+                case '-' -> limit.append("-");
                 case '0' -> limit.append(0);
                 case '1' -> limit.append(1);
                 case '2' -> limit.append(2);
@@ -137,7 +138,7 @@ public class LimitCalculator {
                     }
                 }
                 case 4 -> {
-                    while (savedExpression.contains("+") || savedExpression.contains("-")) {
+                    while (savedExpression.contains("+") || savedExpression.contains(" - ")) {
                         savedExpression = evaluateAdditionAndSubtraction(savedExpression);
                         System.out.println(" = " + savedExpression);
                     }
@@ -262,7 +263,7 @@ public class LimitCalculator {
 
         int firstAddend, secondAddend, sum;
         int firstSubtrahend, secondSubtrahend, difference;
-        while (savedExpression.toString().contains("+") || savedExpression.toString().contains("-")) {
+        while (savedExpression.toString().contains("+") || savedExpression.toString().contains(" - ")) {
             for (int i = 0; i < savedExpression.length(); i++) {
                 if (savedExpression.charAt(i) == '+') {
                     for (int j = i + 2; j < savedExpression.length(); j++) {
@@ -288,7 +289,7 @@ public class LimitCalculator {
                     return savedExpression.replace(firstAddendStartingPosition, secondAddendEndingPosition + 1, String.valueOf(sum)).toString();
                 }
 
-                if (savedExpression.charAt(i) == '-') {
+                if (savedExpression.charAt(i) == '-' && savedExpression.charAt(i + 1) == ' ') {
                     for (int j = i + 2; j < savedExpression.length(); j++) {
                         if (savedExpression.charAt(j) == ' ') {
                             secondSubtrahendStartingPosition = i + 2;
