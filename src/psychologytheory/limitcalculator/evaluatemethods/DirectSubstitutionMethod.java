@@ -22,9 +22,9 @@ public class DirectSubstitutionMethod {
         resultExpression.append(operateInOrder(substitutedExpression.toString()));
         resultExpression.replace(0, resultExpression.length(), operateInOrder(resultExpression.toString()));
 
-        if (resultExpression.toString().equals(" _( 0 / 0 ) ")) {
+        if (resultExpression.toString().equals(" _( 0 _/ 0 ) ")) {
             return LimitTypes.INDETERMINANT;
-        } else if (resultExpression.toString().contains(" / 0")) {
+        } else if (resultExpression.toString().contains(" _/ 0")) {
             if (resultExpression.toString().contains("_-")) {
                 return LimitTypes.NEGATIVE_INFINITY;
             }
@@ -63,16 +63,13 @@ public class DirectSubstitutionMethod {
         return savedExpression;
     }
 
+    //BUG: Can't locate the '_' before fractions, FIX IT!
     private String evaluateParentheses(String expression) {
         int openingParenthesesPosition = 0;
         int endingParenthesesPosition = 0;
         StringBuilder savedExpression = new StringBuilder(expression);
 
         while (savedExpression.toString().contains(" (")) {
-            if (savedExpression.charAt(openingParenthesesPosition - 1) == '_') {
-                continue;
-            }
-
             for (int i = openingParenthesesPosition; i < savedExpression.length(); i++) {
                 if (savedExpression.charAt(i) == ')') {
                     endingParenthesesPosition = i;
@@ -85,6 +82,10 @@ public class DirectSubstitutionMethod {
                     openingParenthesesPosition = i;
                     break;
                 }
+            }
+
+            if (savedExpression.charAt(openingParenthesesPosition - 1) == '_') {
+                continue;
             }
 
             System.out.println(" " + savedExpression.substring(openingParenthesesPosition, endingParenthesesPosition + 1) + " ");

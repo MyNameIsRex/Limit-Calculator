@@ -51,6 +51,7 @@ public class LimitCalculator {
         this.answer = solveProblem(this.problem);
         System.out.println("====================================================================================================================\n");
         System.out.println(this.answer);
+        System.out.println("====================================================================================================================\n");
     }
 
     private boolean isFormatCorrect(String input) {
@@ -64,7 +65,8 @@ public class LimitCalculator {
         char variable = problem.charAt(4);
         StringBuilder limit = new StringBuilder();
         String expression = "";
-        boolean hasLimit;
+        LimitTypes currentLimitType;
+        boolean continueSolving;
         String answer = "";
 
         for (int i = 9; i < problem.length(); i++) {
@@ -89,10 +91,19 @@ public class LimitCalculator {
         }
 
         this.currentStepNum++;
-        hasLimit = this.directSubstitutionMethod.directSubstitution(this.currentStepNum, variable, Integer.parseInt(limit.toString()), expression).hasLimit();
+        currentLimitType = this.directSubstitutionMethod.directSubstitution(this.currentStepNum, variable, Integer.parseInt(limit.toString()), expression);
+        System.out.println("====================================================================================================================\n");
+        System.out.println("The limit " + currentLimitType.getResult()+ "\n");
+
+        while (!currentLimitType.hasLimit()) {
+            this.currentStepNum++;
+            System.out.println("====================================================================================================================\n");
+            System.out.println("Analyzing Problem...\n");
+            break;
+        }
 
         endSolvingTime = System.nanoTime();
         overallSolveTime = (float) (endSolvingTime - startSolvingTime) / 1000000000;
-        return "\nVariable: " + variable + " | " + "Limit: " + limit + " | " + "Expression: " + expression + " | " + "Solving Time: " + Math.round(overallSolveTime) + " seconds";
+        return "Variable: " + variable + " | " + "Limit: " + limit + " | " + "Expression: " + expression + " | " + "Solving Time: " + Math.round(overallSolveTime) + " seconds\n";
     }
 }
