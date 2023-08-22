@@ -1,7 +1,6 @@
 package psychologytheory.limitcalculator.utilities;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class SimplifyExpressionUtil {
 
