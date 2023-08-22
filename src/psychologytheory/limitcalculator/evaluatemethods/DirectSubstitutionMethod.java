@@ -1,18 +1,22 @@
 package psychologytheory.limitcalculator.evaluatemethods;
 
 import psychologytheory.limitcalculator.LimitTypes;
+import psychologytheory.limitcalculator.utilities.SimplifyExpressionUtil;
 
 public class DirectSubstitutionMethod {
+    private SimplifyExpressionUtil simplifyExpression;
+
     public LimitTypes directSubstitution(int stepNumber, char variable, int limit, String expression) {
         StringBuilder substitutedExpression = new StringBuilder();
         StringBuilder resultExpression = new StringBuilder();
+
+        this.simplifyExpression = new SimplifyExpressionUtil();
 
         for (int i = 0; i < expression.length(); i++) {
             if (expression.charAt(i) == variable) {
                 substitutedExpression.append(limit);
                 continue;
             }
-
             substitutedExpression.append(expression.charAt(i));
         }
 
@@ -20,7 +24,6 @@ public class DirectSubstitutionMethod {
         System.out.println("\n====================================================================================================================");
         System.out.println(substitutedExpression);
         resultExpression.append(operateInOrder(substitutedExpression.toString()));
-        resultExpression.replace(0, resultExpression.length(), operateInOrder(resultExpression.toString()));
 
         if (resultExpression.toString().equals(" _( 0 _/ 0 ) ")) {
             return LimitTypes.INDETERMINANT;
@@ -60,10 +63,16 @@ public class DirectSubstitutionMethod {
                 }
             }
         }
+
+        //Simplify
+        if (savedExpression.contains(" _/ ") && savedExpression.contains("_( ")) {
+            savedExpression = simplifyExpression.simplyFractionExpression(savedExpression);
+            System.out.println(" = " + savedExpression);
+        }
+
         return savedExpression;
     }
 
-    //BUG: Can't locate the '_' before fractions, FIX IT!
     private String evaluateParentheses(String expression) {
         int openingParenthesesPosition = 0;
         int endingParenthesesPosition = 0;

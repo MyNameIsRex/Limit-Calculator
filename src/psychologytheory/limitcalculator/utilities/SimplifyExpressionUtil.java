@@ -3,22 +3,26 @@ package psychologytheory.limitcalculator.utilities;
 import java.util.ArrayList;
 
 public class SimplifyExpressionUtil {
-
     public String simplyFractionExpression(String fractionExpression) {
         StringBuilder savedFractionExpression = new StringBuilder();
         savedFractionExpression.append(fractionExpression);
 
         int numerator = 0, denominator = 0;
 
+        ArrayList<Integer> numeratorFactors;
+        ArrayList<Integer> denominatorFactors;
+        ArrayList<Integer> commonFactors = new ArrayList<>();
+
         for (int i = 0; i < savedFractionExpression.length(); i++) {
-             if (savedFractionExpression.charAt(i) == '_') {
+             if (savedFractionExpression.charAt(i) == '_' && savedFractionExpression.charAt(i + 1) == '/') {
                  //findNumerator
                  for (int j = i - 2; j >= 0; j--) {
                      if (savedFractionExpression.charAt(j) == ' ') {
-                         numerator = Integer.parseInt(savedFractionExpression.substring(j, i - 1));
+                         numerator = Integer.parseInt(savedFractionExpression.substring(j + 1, i - 1));
                          break;
                      }
                  }
+
                  //findDenominator
                  for (int k = i + 3; k < savedFractionExpression.length(); k++) {
                      if (savedFractionExpression.charAt(k) == ' ') {
@@ -26,7 +30,6 @@ public class SimplifyExpressionUtil {
                          break;
                      }
                  }
-
                  break;
              }
         }
@@ -36,7 +39,29 @@ public class SimplifyExpressionUtil {
             denominator /= 2;
         }
 
-        return null;
+        numeratorFactors = calculateFactors(numerator);
+        denominatorFactors = calculateFactors(denominator);
+
+        if (numerator > denominator) {
+            for (Integer denominatorFactor : denominatorFactors) {
+                if (numeratorFactors.contains(denominatorFactor)) {
+                    commonFactors.add(denominatorFactor);
+                }
+            }
+        } else if (numerator < denominator) {
+            for (Integer numeratorFactor : numeratorFactors) {
+                if (denominatorFactors.contains(numeratorFactor)) {
+                    commonFactors.add(numeratorFactor);
+                }
+            }
+        }
+
+        for (Integer commonFactor : commonFactors) {
+            numerator /= commonFactor;
+            denominator /= commonFactor;
+        }
+
+        return " _( " + numerator + " _/ " + denominator + " ) ";
     }
 
     private boolean areEvenNumbers(int a, int b) {
@@ -45,7 +70,6 @@ public class SimplifyExpressionUtil {
 
     private ArrayList<Integer> calculateFactors(int a) {
         ArrayList<Integer> factors = new ArrayList<>();
-        factors.add(0, 1);
 
         for (int i = 1; i <= a; i++) {
             if (a % i == 0) {
