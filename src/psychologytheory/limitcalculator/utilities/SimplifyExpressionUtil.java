@@ -3,7 +3,7 @@ package psychologytheory.limitcalculator.utilities;
 import java.util.ArrayList;
 
 public class SimplifyExpressionUtil {
-    public String simplyFractionExpression(String fractionExpression) {
+    public String simplifyFractionExpression(String fractionExpression) {
         StringBuilder savedFractionExpression = new StringBuilder();
         savedFractionExpression.append(fractionExpression);
 

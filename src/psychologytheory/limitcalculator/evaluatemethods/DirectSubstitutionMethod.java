@@ -49,6 +49,12 @@ public class DirectSubstitutionMethod {
                         System.out.println(" = " + savedExpression);
                     }
                 }
+                case 2 -> {
+                    while (savedExpression.contains("^")) {
+                        savedExpression = evaluateExponents(savedExpression);
+                        System.out.println(" = " + savedExpression);
+                    }
+                }
                 case 3 -> {
                     while (savedExpression.contains("*") || savedExpression.contains(" /")) {
                         savedExpression = evaluateMultiplicationAndFraction(savedExpression);
@@ -66,7 +72,7 @@ public class DirectSubstitutionMethod {
 
         //Simplify
         if (savedExpression.contains(" _/ ") && savedExpression.contains("_( ")) {
-            savedExpression = simplifyExpression.simplyFractionExpression(savedExpression);
+            savedExpression = simplifyExpression.simplifyFractionExpression(savedExpression);
             System.out.println(" = " + savedExpression);
         }
 
@@ -100,6 +106,204 @@ public class DirectSubstitutionMethod {
             System.out.println(" " + savedExpression.substring(openingParenthesesPosition, endingParenthesesPosition + 1) + " ");
 
             return savedExpression.replace(openingParenthesesPosition - 1, endingParenthesesPosition + 2, operateInOrder(expression.substring(openingParenthesesPosition + 1, endingParenthesesPosition))).toString();
+        }
+        return savedExpression.toString();
+    }
+
+    private String evaluateExponents(String expression) {
+        StringBuilder savedExpression = new StringBuilder();
+        savedExpression.append(expression);
+
+        int base = 0, exponent = 0, result = 0;
+        int baseNumerator = 0, baseDenominator = 0, exponentNumerator = 0, exponentDenominator = 0, resultNumerator = 0, resultDenominator = 0;
+        int baseStartingPosition = 0, exponentEndingPosition = 1;
+        String baseExpression = "", exponentExpression = "";
+
+        boolean baseIsFraction = false, exponentIsFraction = false;
+
+        for (int i = 0; i < savedExpression.length(); i++) {
+            if (savedExpression.charAt(i) == '^') {
+                //base
+                for (int j = i - 2; j >= 0; j--) {
+                    if (savedExpression.charAt(j) == ')') {
+                        for (int k = j; k >= 0; k--) {
+                            if (savedExpression.charAt(k) == '(' && savedExpression.charAt(k - 1) == '_') {
+                                baseExpression = savedExpression.substring(k - 1, j + 1);
+                                break;
+                            }
+                        }
+                        break;
+                    } else if (savedExpression.charAt(j) == ' ') {
+                        baseExpression = savedExpression.substring(j + 1, i - 1);
+                        baseStartingPosition += j + 1;
+                        break;
+                    }
+                }
+
+                //exponent
+                for (int j = i + 2; j < savedExpression.length(); j++) {
+                    if (savedExpression.charAt(j) == '_' && savedExpression.charAt(j + 1) == '(') {
+                        for (int k = j; k < savedExpression.length(); k++) {
+                            if (savedExpression.charAt(k) == ')' && savedExpression.charAt(k + 1) == ' ') {
+                                exponentExpression = savedExpression.substring(j, k + 1);
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                    if (savedExpression.charAt(j) == ' ') {
+                        exponentExpression = savedExpression.substring(i + 2, j);
+                        exponentEndingPosition += j;
+                        break;
+                    }
+                }
+
+                if (baseExpression.contains("_(") && baseExpression.contains("_/")) {
+                    baseIsFraction = true;
+                    for (int k = 0; k < baseExpression.length(); k++) {
+                        if (baseExpression.charAt(k) == '_' && baseExpression.charAt(k + 1) == '/') {
+                            //baseNumerator
+                            for (int l = k - 2; l >= 0; l--) {
+                                if (baseExpression.charAt(l) == ' ') {
+                                    baseNumerator = Integer.parseInt(baseExpression.substring(l + 1, k - 1));
+                                    break;
+                                }
+                            }
+
+                            //baseDenominator
+                            for (int l = k + 3; l < baseExpression.length(); l++) {
+                                if (baseExpression.charAt(l) == ' ') {
+                                    baseDenominator = Integer.parseInt(baseExpression.substring(k + 3, l));
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+
+                if (exponentExpression.contains("_(") && exponentExpression.contains("_/")){
+                    exponentIsFraction = true;
+                    for (int k = 0; k < exponentExpression.length(); k++) {
+                        if (exponentExpression.charAt(k) == '_' && exponentExpression.charAt(k + 1) == '/') {
+                            //exponentNumerator
+                            for (int l = k - 2; l >= 0; l--) {
+                                if (exponentExpression.charAt(l) == ' ') {
+                                    exponentNumerator = Integer.parseInt(exponentExpression.substring(l + 1, k - 1));
+                                    break;
+                                }
+                            }
+
+                            //exponentDenominator
+                            for (int l = k + 3; l < exponentExpression.length(); l++) {
+                                if (exponentExpression.charAt(l) == ' ') {
+                                    exponentDenominator = Integer.parseInt(exponentExpression.substring(k + 3, l));
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+
+                if (baseIsFraction) {
+                    if (exponentIsFraction) {
+                        int newBaseNumerator = (int) Math.pow(baseNumerator, exponentNumerator);
+                        int newBaseDenominator = (int) Math.pow(baseDenominator, exponentNumerator);
+
+                        if (exponentDenominator == 2) {
+                            //baseNumerator
+                            for (int m = 1; m < newBaseNumerator; m++) {
+                                if (m * m == newBaseNumerator) {
+                                    resultNumerator = m;
+                                    break;
+                                } else if (m * m > newBaseNumerator) {
+                                    break;
+                                }
+                            }
+
+                            //baseDenominator
+                            for (int n = 1; n < newBaseDenominator; n++) {
+                                if (n * n == newBaseDenominator) {
+                                    resultDenominator = n;
+                                    break;
+                                } else if (n * n > newBaseNumerator) {
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (exponentDenominator == 3) {
+                            //baseNumerator
+                            for (int m = 1; m < newBaseNumerator; m++) {
+                                if (m * m * m == newBaseNumerator) {
+                                    resultNumerator = m;
+                                    break;
+                                } else if (m * m * m > newBaseNumerator) {
+                                    break;
+                                }
+                            }
+
+                            //baseDenominator
+                            for (int n = 1; n < newBaseDenominator; n++) {
+                                if (n * n * n == newBaseDenominator) {
+                                    resultDenominator = n;
+                                    break;
+                                } else if (n * n * n > newBaseDenominator) {
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (resultNumerator == 0) {
+                            savedExpression.replace(baseStartingPosition, exponentEndingPosition, "_( " + newBaseNumerator + " _^ " + exponentExpression + " _/ " + resultDenominator + " )");
+                        } else if (resultDenominator == 0) {
+                            savedExpression.replace(baseStartingPosition, exponentEndingPosition, "_( " + resultNumerator + " _* " + newBaseDenominator + " _^ " + exponentExpression + " _/ " + newBaseDenominator + " )");
+                        } else {
+                            savedExpression.replace(baseStartingPosition, exponentEndingPosition, "_( " + resultNumerator + " _/ " + resultDenominator + " )");
+                        }
+                    } else {
+                        exponent = Integer.parseInt(exponentExpression);
+                        resultNumerator = (int) Math.pow(baseNumerator, exponent);
+                        resultDenominator = (int) Math.pow(baseDenominator, exponent);
+
+                        savedExpression.replace(baseStartingPosition, exponentEndingPosition, "_( " + resultNumerator + " _/ " + resultDenominator + " )");
+                        return savedExpression.toString();
+                    }
+                } else if (exponentIsFraction) {
+                    base = Integer.parseInt(baseExpression);
+                    int newBase = (int) Math.pow(base, exponentNumerator);
+                    if (exponentDenominator == 2) {
+                        for (int m = 1; m < newBase; m++) {
+                            if (m * m == newBase) {
+                                savedExpression.replace(baseStartingPosition, exponentEndingPosition, String.valueOf(m));
+                                break;
+                            } else if (m * m > newBase) {
+                                break;
+                            }
+                        }
+                    } else if (exponentDenominator == 3) {
+                        for (int m = 1; m < newBase; m++) {
+                            if (m * m * m == newBase) {
+                                savedExpression.replace(baseStartingPosition, exponentEndingPosition, String.valueOf(m));
+                                break;
+                            } else if (m * m * m > newBase) {
+                                break;
+                            }
+                        }
+                    }
+
+                    savedExpression.replace(baseStartingPosition, exponentEndingPosition, newBase + " _^ " + "_( " + 1 + " _/ " + resultDenominator + " )");
+                    return savedExpression.toString();
+                } else {
+                    base = Integer.parseInt(baseExpression);
+                    exponent = Integer.parseInt(exponentExpression);
+
+                    result = (int) Math.pow(base, exponent);
+                    savedExpression.replace(baseStartingPosition, exponentEndingPosition, String.valueOf(result));
+                    return savedExpression.toString();
+                }
+            }
         }
         return savedExpression.toString();
     }
