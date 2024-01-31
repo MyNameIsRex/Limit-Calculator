@@ -1,10 +1,9 @@
 package psychologytheory.limitcalculator;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class DirectSubstitution {
-    private int[] indicesOfWhiteSpaces;
+    private int[] indiciesOfWhiteSpaces;
     private char variable;
     private String limit;
     private String expression;
@@ -13,17 +12,17 @@ public class DirectSubstitution {
         this.interpretExpression(function);
         this.expression = this.substitute(this.variable, this.limit, this.expression);
         while (this.expression.contains("+") || this.expression.contains("- ") || this.expression.contains("*") || this.expression.contains(" / ")) {
-            this.indicesOfWhiteSpaces = this.indiciesOfWhiteSpaces(this.expression);
-            this.expression = this.evaluateExpression(this.expression, this.indicesOfWhiteSpaces);
+            this.indiciesOfWhiteSpaces = this.indiciesofwhitespaces(this.expression);
+            this.expression = this.evaluateExpression(this.expression, this.indiciesOfWhiteSpaces);
         }
     }
 
     private void interpretExpression(String function) {
-        this.indicesOfWhiteSpaces = this.indiciesOfWhiteSpaces(function);
+        this.indiciesOfWhiteSpaces = this.indiciesofwhitespaces(function);
 
-        this.variable = function.charAt(this.indicesOfWhiteSpaces[0] + 1);
-        this.limit = function.substring(this.indicesOfWhiteSpaces[2] + 1, this.indicesOfWhiteSpaces[3]);
-        this.expression = function.substring(this.indicesOfWhiteSpaces[3] + 1);
+        this.variable = function.charAt(this.indiciesOfWhiteSpaces[0] + 1);
+        this.limit = function.substring(this.indiciesOfWhiteSpaces[2] + 1, this.indiciesOfWhiteSpaces[3]);
+        this.expression = function.substring(this.indiciesOfWhiteSpaces[3] + 1);
 
         LimitCalculator.prompt("\nVariable: " + this.variable + " | Limit: " + this.limit + " | Expression: " + this.expression);
     }
@@ -43,45 +42,57 @@ public class DirectSubstitution {
         return newExpression.toString();
     }
 
-    private String evaluateExpression(String expression, int[] indicesOfWhiteSpaces) {
+    private String evaluateExpression(String expression, int[] indiciesOfWhiteSpaces) {
         StringBuilder newExpression = new StringBuilder();
         String answer;
-        boolean isFirstStringModified = false;
-        String a = "", b = "";
+
+        StringBuilder a = new StringBuilder();
+        StringBuilder b = new StringBuilder();
+        boolean isAFraction = true, isBFraction = true;
+
         int replaceBeginIndex = 0, replaceEndIndex = 0;
         char operator = ' ';
 
-        for (int i = 0; i < indicesOfWhiteSpaces.length; i++) {
-            //Current Index obtained from indicesOfWhiteSpace[i]
+        for (int i = 0; i < indiciesOfWhiteSpaces.length; i++) {
             //Check if we are at the last index of the array, this check is to prevent ArrayIndexOutOfBounds
-            if (indicesOfWhiteSpaces[i] == indicesOfWhiteSpaces[indicesOfWhiteSpaces.length - 1]) {
+            if (indiciesOfWhiteSpaces[i] == indiciesOfWhiteSpaces[indiciesOfWhiteSpaces.length - 1]) {
                 break;
             }
 
-            //TODO: The check ignores "_/", fix it
             //Check operators
-            if (expression.charAt(indicesOfWhiteSpaces[i] + 1) == '(' || expression.charAt(indicesOfWhiteSpaces[i] + 1) == ')' ||
-                expression.charAt(indicesOfWhiteSpaces[i] + 1) == '+' || expression.charAt(indicesOfWhiteSpaces[i] + 1) == '-' && expression.charAt(indicesOfWhiteSpaces[i] + 2) == ' ' ||
-                expression.charAt(indicesOfWhiteSpaces[i] + 1) == '*' || expression.charAt(indicesOfWhiteSpaces[i] + 1) == '/' ||
-                expression.charAt(indicesOfWhiteSpaces[i] + 1) == '^') {
-                operator = expression.charAt(indicesOfWhiteSpaces[i] + 1);
-                continue;
-            }
+            if (expression.charAt(indiciesOfWhiteSpaces[i] + 1) == '(' || expression.charAt(indiciesOfWhiteSpaces[i] + 1) == ')' ||
+                expression.charAt(indiciesOfWhiteSpaces[i] + 1) == '+' || expression.charAt(indiciesOfWhiteSpaces[i] + 1) == '-' && expression.charAt(indiciesOfWhiteSpaces[i] + 2) == ' ' ||
+                expression.charAt(indiciesOfWhiteSpaces[i] + 1) == '*' || expression.charAt(indiciesOfWhiteSpaces[i] + 1) == '/'||
+                expression.charAt(indiciesOfWhiteSpaces[i] + 1) == '^') {
 
-            //All false, therefore, the next term must be an integer
-            if (isFirstStringModified) {
-                //Breaking out of the loop because both a and b have been obtained
-                replaceEndIndex = indicesOfWhiteSpaces[i + 1];
-                b = expression.substring(indicesOfWhiteSpaces[i] + 1, replaceEndIndex);
+                operator = expression.charAt(indiciesOfWhiteSpaces[i] + 1);
+
+                //TODO: Fix ArrayIndexOutOfBounds
+                if (expression.charAt(indiciesOfWhiteSpaces[i - 2] + 1) == '_') {
+                    replaceBeginIndex = indiciesOfWhiteSpaces[i - 3] + 1;
+                    isAFraction = false;
+                }
+
+                if (expression.charAt(indiciesOfWhiteSpaces[2] + 1) == '_') {
+                    replaceEndIndex = indiciesOfWhiteSpaces[i + 4];
+                    isBFraction = false;
+                }
+
+                if (!isAFraction && Character.isDigit(expression.charAt(indiciesOfWhiteSpaces[i - 1] + 1))) {
+                    replaceBeginIndex = indiciesOfWhiteSpaces[i - 1] + 1;
+                }
+
+                if (!isBFraction && Character.isDigit(expression.charAt(indiciesOfWhiteSpaces[i + 1] + 1))) {
+                    replaceEndIndex = indiciesOfWhiteSpaces[i + 2];
+                }
+
+                a.append(expression, replaceBeginIndex, indiciesOfWhiteSpaces[i]);
+                b.append(expression, indiciesOfWhiteSpaces[i + 1] + 1, replaceEndIndex);
                 break;
             }
-
-            replaceBeginIndex = indicesOfWhiteSpaces[i] + 1;
-            a = expression.substring(replaceBeginIndex, indicesOfWhiteSpaces[i + 1]);
-            isFirstStringModified = true;
         }
 
-        answer = this.calculate(a, b, operator);
+        answer = this.calculate(a.toString(), b.toString(), operator);
         newExpression.append(expression, 0, replaceBeginIndex).append(answer).append(expression.substring(replaceEndIndex));
         LimitCalculator.prompt("\nNew Expression: " + newExpression);
         return newExpression.toString();
@@ -190,7 +201,7 @@ public class DirectSubstitution {
     }
     */
 
-    private int[] indiciesOfWhiteSpaces(String function) {
+    private int[] indiciesofwhitespaces(String function) {
         int numOfWhiteSpaces = 0;
         int listIndex = 0;
         int[] indicesOfWhiteSpaces;
