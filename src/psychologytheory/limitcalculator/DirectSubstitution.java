@@ -12,8 +12,10 @@ public class DirectSubstitution {
     public DirectSubstitution(String function) {
         this.interpretExpression(function);
         this.expression = this.substitute(this.variable, this.limit, this.expression);
-        this.indicesOfWhiteSpaces = this.indiciesOfWhiteSpaces(this.expression);
-        this.expression = this.evaluateExpression(this.expression, this.indicesOfWhiteSpaces);
+        while (this.expression.contains("+") || this.expression.contains("- ") || this.expression.contains("*") || this.expression.contains(" / ")) {
+            this.indicesOfWhiteSpaces = this.indiciesOfWhiteSpaces(this.expression);
+            this.expression = this.evaluateExpression(this.expression, this.indicesOfWhiteSpaces);
+        }
     }
 
     private void interpretExpression(String function) {
@@ -37,14 +39,16 @@ public class DirectSubstitution {
             newExpression.append(expression.charAt(i));
         }
 
-        LimitCalculator.prompt("\nVariable: " + this.variable + " | Limit: " + this.limit + " | New Expression: " + newExpression);
+        LimitCalculator.prompt("\nNew Expression: " + newExpression);
         return newExpression.toString();
     }
 
     private String evaluateExpression(String expression, int[] indicesOfWhiteSpaces) {
-        StringBuilder answer;
+        StringBuilder newExpression = new StringBuilder();
+        String answer;
         boolean isFirstIntModified = false;
         int a = 0, b = 0;
+        int replaceBeginIndex = 0, replaceEndIndex = 0;
         char operator = ' ';
 
         for (int i = 0; i < indicesOfWhiteSpaces.length; i++) {
@@ -66,18 +70,20 @@ public class DirectSubstitution {
             //All false, therefore, the next term must be an integer
             if (isFirstIntModified) {
                 //Breaking out of the loop because both a and b have been obtained
-                b = Integer.parseInt(expression.substring(indicesOfWhiteSpaces[i] + 1, indicesOfWhiteSpaces[i + 1]));
+                replaceEndIndex = indicesOfWhiteSpaces[i + 1];
+                b = Integer.parseInt(expression.substring(indicesOfWhiteSpaces[i] + 1, replaceEndIndex));
                 break;
             }
 
-            a = Integer.parseInt(expression.substring(indicesOfWhiteSpaces[i] + 1, indicesOfWhiteSpaces[i + 1]));
+            replaceBeginIndex = indicesOfWhiteSpaces[i] + 1;
+            a = Integer.parseInt(expression.substring(replaceBeginIndex, indicesOfWhiteSpaces[i + 1]));
             isFirstIntModified = true;
         }
 
-        LimitCalculator.prompt("\nA: " + a + " | B: " + b + " | Operator: " + operator);
-        answer = this.calculate(a, b, operator);
-        LimitCalculator.prompt("\n" + a + " " + operator + " " + b + " = " + answer);
-        return answer.toString();
+        answer = this.calculate(a, b, operator).toString();
+        newExpression.append(expression, 0, replaceBeginIndex).append(answer).append(expression.substring(replaceEndIndex));
+        LimitCalculator.prompt("\nNew Expression: " + newExpression);
+        return newExpression.toString();
     }
 
     private StringBuilder calculate(int a, int b, char operator) {
