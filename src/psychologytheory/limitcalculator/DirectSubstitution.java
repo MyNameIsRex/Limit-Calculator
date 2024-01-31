@@ -46,8 +46,8 @@ public class DirectSubstitution {
     private String evaluateExpression(String expression, int[] indicesOfWhiteSpaces) {
         StringBuilder newExpression = new StringBuilder();
         String answer;
-        boolean isFirstIntModified = false;
-        int a = 0, b = 0;
+        boolean isFirstStringModified = false;
+        String a = "", b = "";
         int replaceBeginIndex = 0, replaceEndIndex = 0;
         char operator = ' ';
 
@@ -58,6 +58,7 @@ public class DirectSubstitution {
                 break;
             }
 
+            //TODO: The check ignores "_/", fix it
             //Check operators
             if (expression.charAt(indicesOfWhiteSpaces[i] + 1) == '(' || expression.charAt(indicesOfWhiteSpaces[i] + 1) == ')' ||
                 expression.charAt(indicesOfWhiteSpaces[i] + 1) == '+' || expression.charAt(indicesOfWhiteSpaces[i] + 1) == '-' && expression.charAt(indicesOfWhiteSpaces[i] + 2) == ' ' ||
@@ -68,53 +69,51 @@ public class DirectSubstitution {
             }
 
             //All false, therefore, the next term must be an integer
-            if (isFirstIntModified) {
+            if (isFirstStringModified) {
                 //Breaking out of the loop because both a and b have been obtained
                 replaceEndIndex = indicesOfWhiteSpaces[i + 1];
-                b = Integer.parseInt(expression.substring(indicesOfWhiteSpaces[i] + 1, replaceEndIndex));
+                b = expression.substring(indicesOfWhiteSpaces[i] + 1, replaceEndIndex);
                 break;
             }
 
             replaceBeginIndex = indicesOfWhiteSpaces[i] + 1;
-            a = Integer.parseInt(expression.substring(replaceBeginIndex, indicesOfWhiteSpaces[i + 1]));
-            isFirstIntModified = true;
+            a = expression.substring(replaceBeginIndex, indicesOfWhiteSpaces[i + 1]);
+            isFirstStringModified = true;
         }
 
-        answer = this.calculate(a, b, operator).toString();
+        answer = this.calculate(a, b, operator);
         newExpression.append(expression, 0, replaceBeginIndex).append(answer).append(expression.substring(replaceEndIndex));
         LimitCalculator.prompt("\nNew Expression: " + newExpression);
         return newExpression.toString();
     }
 
-    private StringBuilder calculate(int a, int b, char operator) {
-        StringBuilder newExpression = new StringBuilder();
-        switch (operator) {
-            case '+':
-                newExpression.append(Integer.valueOf(a + b));
-                break;
-            case '-':
-                newExpression.append(Integer.valueOf(a - b));
-                break;
-            case '*':
-                newExpression.append(Integer.valueOf(a * b));
-                break;
-            case '/':
-                newExpression.append(this.simplifyFraction(a, b));
-                break;
-            //case '^':
-                //newExpression.append(this.simplifyExponents(a, b));
-                //break;
-            default:
-                newExpression.append(0);
-                break;
+    private String calculate(String a, String b, char operator) {
+        if (a.contains("_/") || b.contains("_/")) {
+            return this.fractionalResult(a, b, operator);
         }
+        return this.integerResult(a, b, operator);
+    }
 
-        return newExpression;
+    private String fractionalResult(String a, String b, char operator) {
+        String newExpression;
+        return "69";
+    }
+
+    private String integerResult(String a, String b, char operator) {
+        int aInt = Integer.parseInt(a);
+        int bInt = Integer.parseInt(b);
+        return switch (operator) {
+            case '+' -> String.valueOf(aInt + bInt);
+            case '-' -> String.valueOf(aInt - bInt);
+            case '*' -> String.valueOf(aInt * bInt);
+            case '/' -> this.simplifyFraction(aInt, bInt);
+            case '^' -> "";
+            default -> "0";
+        };
     }
 
     private String simplifyFraction(int a, int b) {
         StringBuilder newExpression = new StringBuilder();
-
         if (a == 0) {
             newExpression.append(0);
             return newExpression.toString();
