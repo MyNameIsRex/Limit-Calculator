@@ -1,5 +1,8 @@
 package psychologytheory.limitcalculator;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DirectSubstitution {
     private int[] indicesOfWhiteSpaces;
     private char variable;
@@ -10,7 +13,7 @@ public class DirectSubstitution {
         this.interpretExpression(function);
         this.expression = this.substitute(this.variable, this.limit, this.expression);
         this.indicesOfWhiteSpaces = this.indiciesOfWhiteSpaces(this.expression);
-        this.evaluateExpression(this.expression, this.indicesOfWhiteSpaces);
+        this.expression = this.evaluateExpression(this.expression, this.indicesOfWhiteSpaces);
     }
 
     private void interpretExpression(String function) {
@@ -38,7 +41,8 @@ public class DirectSubstitution {
         return newExpression.toString();
     }
 
-    private void evaluateExpression(String expression, int[] indicesOfWhiteSpaces) {
+    private String evaluateExpression(String expression, int[] indicesOfWhiteSpaces) {
+        StringBuilder answer;
         boolean isFirstIntModified = false;
         int a = 0, b = 0;
         char operator = ' ';
@@ -53,7 +57,8 @@ public class DirectSubstitution {
             //Check operators
             if (expression.charAt(indicesOfWhiteSpaces[i] + 1) == '(' || expression.charAt(indicesOfWhiteSpaces[i] + 1) == ')' ||
                 expression.charAt(indicesOfWhiteSpaces[i] + 1) == '+' || expression.charAt(indicesOfWhiteSpaces[i] + 1) == '-' && expression.charAt(indicesOfWhiteSpaces[i] + 2) == ' ' ||
-                expression.charAt(indicesOfWhiteSpaces[i] + 1) == '*' || expression.charAt(indicesOfWhiteSpaces[i] + 1) == '/') {
+                expression.charAt(indicesOfWhiteSpaces[i] + 1) == '*' || expression.charAt(indicesOfWhiteSpaces[i] + 1) == '/' ||
+                expression.charAt(indicesOfWhiteSpaces[i] + 1) == '^') {
                 operator = expression.charAt(indicesOfWhiteSpaces[i] + 1);
                 continue;
             }
@@ -70,7 +75,115 @@ public class DirectSubstitution {
         }
 
         LimitCalculator.prompt("\nA: " + a + " | B: " + b + " | Operator: " + operator);
+        answer = this.calculate(a, b, operator);
+        LimitCalculator.prompt("\n" + a + " " + operator + " " + b + " = " + answer);
+        return answer.toString();
     }
+
+    private StringBuilder calculate(int a, int b, char operator) {
+        StringBuilder newExpression = new StringBuilder();
+        switch (operator) {
+            case '+':
+                newExpression.append(Integer.valueOf(a + b));
+                break;
+            case '-':
+                newExpression.append(Integer.valueOf(a - b));
+                break;
+            case '*':
+                newExpression.append(Integer.valueOf(a * b));
+                break;
+            case '/':
+                newExpression.append(this.simplifyFraction(a, b));
+                break;
+            //case '^':
+                //newExpression.append(this.simplifyExponents(a, b));
+                //break;
+            default:
+                newExpression.append(0);
+                break;
+        }
+
+        return newExpression;
+    }
+
+    private String simplifyFraction(int a, int b) {
+        StringBuilder newExpression = new StringBuilder();
+
+        if (a == 0) {
+            newExpression.append(0);
+            return newExpression.toString();
+        }
+
+        if (b == 0) {
+            newExpression.append(a).append(" _/ ").append("0");
+            return newExpression.toString();
+        }
+
+        if (a % b == 0) {
+            newExpression.append(Integer.valueOf(a / b));
+            return newExpression.toString();
+        }
+
+        int newA = a, newB = b;
+        int greatestCommonFactors = this.findGreatestCommonFactor(a, b);
+
+        newA /= greatestCommonFactors;
+        newB /= greatestCommonFactors;
+
+        return newExpression.append(newA).append(" _/ ").append(newB).toString();
+    }
+
+    private int findGreatestCommonFactor(int a, int b) {
+        ArrayList<Integer> factorsA = this.findFactors(a);
+        ArrayList<Integer> factorsB = this.findFactors(b);
+        ArrayList<Integer> commonFactors = this.findCommonFactors(factorsA, factorsB);
+
+        //Check empty because the two integers have no common factors
+        if (commonFactors.isEmpty()) {
+            return 1;
+        }
+
+        return commonFactors.get(commonFactors.size() - 1);
+    }
+
+    private ArrayList<Integer> findFactors(int value) {
+        ArrayList<Integer> factors = new ArrayList<>();
+        for (int i = 2; i <= value; i++) {
+            if (value % i == 0) {
+                factors.add(i);
+            }
+        }
+        return factors;
+    }
+
+    private ArrayList<Integer> findCommonFactors(ArrayList<Integer> factorsA, ArrayList<Integer> factorsB) {
+        ArrayList<Integer> commonFactors = new ArrayList<>();
+        //Loop through the list with the least items, improves efficiency
+        if (factorsA.size() > factorsB.size()) {
+            factorsB.forEach((value) -> {
+                if (factorsA.contains(value)) {
+                    commonFactors.add(value);
+                }
+            });
+        }
+
+        //If factorsA.size() < factorsB.size() || factorsA.size() == factorsB.size(), hence, checking if the commonFactor list is empty
+        if (commonFactors.isEmpty()) {
+            factorsA.forEach((value) -> {
+                if (factorsB.contains(value)) {
+                    commonFactors.add(value);
+                }
+            });
+        }
+
+        return commonFactors;
+    }
+
+    /*
+    private String simplifyExponents(int a, int b) {
+
+    }
+    */
 
     private int[] indiciesOfWhiteSpaces(String function) {
         int numOfWhiteSpaces = 0;
